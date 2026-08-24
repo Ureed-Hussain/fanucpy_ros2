@@ -126,16 +126,17 @@ user-installed pytest plugins. It does not disable any project test.
 
 ## Bring up the robot connection
 
-The checked-in configuration uses `192.0.2.10`, an RFC 5737 documentation
-address that cannot identify or accidentally contact a real lab controller.
-Replace it at launch time with your controller's address:
+The tested M-10iA controller address is `192.168.0.177`, and the commands below
+use that address. Replace it when your controller uses a different address.
+The checked-in configuration retains a non-contacting documentation default,
+so real launches should pass `robot_ip` explicitly:
 
 ```bash
 source /opt/ros/humble/setup.bash
 source ~/fanucpy_ros2/install/setup.bash
 
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10  # Replace with your controller address.
+  robot_ip:=192.168.0.177
 ```
 
 Successful startup includes a log similar to:
@@ -198,9 +199,9 @@ program:
 
 ```bash
 # Terminal 1
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   socket_timeout_sec:=60.0 \
   enable_motion_commands:=true \
   enable_program_execution:=true \
@@ -231,9 +232,9 @@ the state connection.
 
 ```bash
 # Terminal 1: restart bringup with the motion gate explicitly enabled.
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   enable_motion_commands:=true
 
 # Terminal 2: start the interactive keyboard client.
@@ -260,7 +261,7 @@ source /opt/ros/humble/setup.bash
 source ~/fanucpy_ros2/install/setup.bash
 
 ros2 launch fanucpy_ros2_visualization fanuc_live_rviz.launch.py \
-  robot_ip:=192.0.2.10  # Replace with your controller address.
+  robot_ip:=192.168.0.177
 ```
 
 Use `fanuc_visualization.launch.py` instead when the driver is already running.
@@ -310,7 +311,7 @@ Start MoveIt with live robot state while physical commands remain blocked:
 ```bash
 ros2 launch fanuc_m10ia_moveit_config fanuc_m10ia_moveit.launch.py \
   mode:=real \
-  robot_ip:=192.0.2.10  # Replace with your controller address.
+  robot_ip:=192.168.0.177
 ```
 
 ## Workspace packages
