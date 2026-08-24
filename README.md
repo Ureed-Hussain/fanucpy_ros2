@@ -79,6 +79,15 @@ pre-flight checklist.
 Do not run this workspace with the currently configured Conda Python 3.13.
 ROS 2 Humble's `rclpy` extension is built for Python 3.10.
 
+### Source-controlled fanucpy extension
+
+The driver's
+[`robot.py`](src/fanucpy_ros2_driver/fanucpy_ros2_driver/robot.py) subclasses
+the installed `fanucpy.Robot` and contains the project-specific, validated
+numeric-register support. Students do not need to edit or replace
+`site-packages/fanucpy/robot.py`; the ROS driver loads this compatibility class
+automatically while retaining upstream fanucpy for all other operations.
+
 ## Build
 
 Open a terminal outside Conda, or run `conda deactivate` until the prompt no
@@ -128,8 +137,8 @@ user-installed pytest plugins. It does not disable any project test.
 
 The tested M-10iA controller address is `192.168.0.177`, and the commands below
 use that address. Replace it when your controller uses a different address.
-The checked-in configuration retains a non-contacting documentation default,
-so real launches should pass `robot_ip` explicitly:
+The checked-in configuration uses the tested address. Students using another
+controller must replace it in their site configuration or pass `robot_ip`:
 
 ```bash
 source /opt/ros/humble/setup.bash

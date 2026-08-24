@@ -114,7 +114,7 @@ class FanucpyTransport:
             return self._robot_factory
 
         try:
-            from fanucpy import Robot
+            from .robot import Robot
         except ImportError as exc:
             raise FanucpyDependencyError(
                 "fanucpy is not installed for the Python interpreter used by "

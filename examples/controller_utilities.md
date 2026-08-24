@@ -11,9 +11,9 @@ Start normal state-only bringup. Read operations do not require a write or
 motion gate:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   socket_timeout_sec:=30.0
 ```
 
@@ -71,9 +71,9 @@ the following before accepting an action goal:
 For a reviewed program named `HOME_P`:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   socket_timeout_sec:=60.0 \
   enable_motion_commands:=true \
   enable_program_execution:=true \

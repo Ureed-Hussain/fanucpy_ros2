@@ -115,9 +115,9 @@ source install/setup.bash
 Start the physical robot connection with motion deliberately enabled:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   enable_motion_commands:=true \
   joint_velocity_percent:=5 \
   max_joint_velocity_percent:=10

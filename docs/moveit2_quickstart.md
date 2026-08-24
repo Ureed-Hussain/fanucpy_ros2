@@ -76,7 +76,7 @@ Start real mode with its motion gate left at the safe default:
 ```bash
 ros2 launch fanuc_m10ia_moveit_config fanuc_m10ia_moveit.launch.py \
   mode:=real \
-  robot_ip:=192.0.2.10  # Replace with your controller address.
+  robot_ip:=192.168.0.177
 ```
 
 Verify connection and model tracking:
@@ -97,10 +97,10 @@ obstacles, trajectory, pendant override, and emergency-stop access. Stop the
 state-only launch and restart it deliberately:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanuc_m10ia_moveit_config fanuc_m10ia_moveit.launch.py \
   mode:=real \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   enable_motion_commands:=true \
   joint_velocity_percent:=5 \
   max_joint_velocity_percent:=10
@@ -117,10 +117,10 @@ For a small, independently verified joint move, `goal_only` commands exactly
 the last MoveIt joint point and skips every intermediate command:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanuc_m10ia_moveit_config fanuc_m10ia_moveit.launch.py \
   mode:=real \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   enable_motion_commands:=true \
   trajectory_execution_mode:=goal_only \
   allow_goal_only_execution:=true \

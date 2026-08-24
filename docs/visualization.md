@@ -38,7 +38,7 @@ the controller connection. Then run:
 
 ```bash
 ros2 launch fanucpy_ros2_visualization fanuc_live_rviz.launch.py \
-  robot_ip:=192.0.2.10  # Replace with your controller address.
+  robot_ip:=192.168.0.177
 ```
 
 This starts the driver in state-only mode, `robot_state_publisher`, and RViz2.
@@ -48,9 +48,9 @@ opening a second robot connection.
 To use keyboard motion, restart the launch with the deliberate motion gate:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_visualization fanuc_live_rviz.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   enable_motion_commands:=true
 ```
 

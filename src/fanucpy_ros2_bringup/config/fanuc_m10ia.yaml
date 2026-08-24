@@ -1,8 +1,8 @@
 /**:
   ros__parameters:
     # Controller connection. Port 18735 is the fanucpy/MAPPDK default.
-    # RFC 5737 documentation address. Replace it with the controller address.
-    robot_ip: "192.0.2.10"
+    # Tested controller address. Replace it for another controller or site.
+    robot_ip: "192.168.0.177"
     robot_port: 18735
     robot_model: "FANUC M-10iA"
     socket_timeout_sec: 5.0

@@ -33,9 +33,9 @@ for this operation. Keep teach-pendant HOLD and the emergency stop available.
    source /opt/ros/humble/setup.bash
    source ~/fanucpy_ros2/install/setup.bash
 
-   # Replace the documentation address with your controller address.
+   # Replace this address if your controller uses a different one.
    ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-     robot_ip:=192.0.2.10 \
+     robot_ip:=192.168.0.177 \
      enable_motion_commands:=true
    ```
 
@@ -89,9 +89,9 @@ ros2 run fanucpy_ros2_examples fanucpy_keyboard_teleop \
 The driver ceiling can be lowered or raised up to 100 mm when bringup starts:
 
 ```bash
-# Replace the documentation address with your controller address.
+# Replace this address if your controller uses a different one.
 ros2 launch fanucpy_ros2_bringup fanucpy_bringup.launch.py \
-  robot_ip:=192.0.2.10 \
+  robot_ip:=192.168.0.177 \
   enable_motion_commands:=true \
   max_translation_step_mm:=50.0
 ```

@@ -29,7 +29,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "robot_ip",
-            default_value="192.0.2.10",
+            default_value="192.168.0.177",
             description="IPv4 address or hostname of the FANUC controller.",
         ),
         DeclareLaunchArgument(

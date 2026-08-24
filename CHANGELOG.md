@@ -4,6 +4,11 @@ All notable project changes are documented here.
 
 ## Unreleased
 
+- Standardized the tested M-10iA controller address (`192.168.0.177`) across
+  launch defaults, configuration, and all student documentation.
+- Added a source-controlled `fanucpy.Robot` compatibility subclass containing
+  the validated integer/real numeric-register extension, replacing manual
+  edits to installed `site-packages` copies.
 - Clarified controller-side MAPPDK version/capability diagnostics, including
   `INTP-310` recovery and persistent-connection behavior after TP programs.
 - Power-command failures no longer print a misleading `0.000 W` value, and an

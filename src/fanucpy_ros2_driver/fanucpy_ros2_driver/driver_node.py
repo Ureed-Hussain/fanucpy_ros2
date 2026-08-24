@@ -41,7 +41,7 @@ class FanucpyDriverNode(Node):
     def __init__(self) -> None:
         super().__init__("fanucpy_driver")
 
-        self.declare_parameter("robot_ip", "192.0.2.10")
+        self.declare_parameter("robot_ip", "192.168.0.177")
         self.declare_parameter("robot_port", 18735)
         self.declare_parameter("robot_model", "Fanuc")
         self.declare_parameter("socket_timeout_sec", 5.0)

@@ -92,7 +92,7 @@ robot.
 
 | Parameter | Default | Meaning |
 | --- | --- | --- |
-| `robot_ip` | `192.0.2.10` | Documentation address; replace with the controller IPv4 address or hostname |
+| `robot_ip` | `192.168.0.177` | Tested controller IPv4 address; replace for another controller or site |
 | `robot_port` | `18735` | MAPPDK server TCP port |
 | `robot_model` | `FANUC M-10iA` in the site YAML | Model label passed to fanucpy and status messages |
 | `socket_timeout_sec` | `5.0` | Maximum blocking socket-operation time |
