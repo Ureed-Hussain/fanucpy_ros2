@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: fanuc_m10ia_moveit_config
+    relative_path: config/fanuc_m10ia.urdf.xacro
+    xacro_args: use_mock_hardware:=false
+  srdf:
+    relative_path: config/fanuc_m10ia.srdf
+  package_settings:
+    author_name: ureed
+    author_email: ureed@users.noreply.github.com
+    generated_timestamp: 1787300000

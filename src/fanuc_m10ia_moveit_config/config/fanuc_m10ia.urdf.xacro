@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+  Copyright 2026 ureed
+  SPDX-License-Identifier: Apache-2.0
+
+  The M-10iA geometry and kinematic model are provided by the separately
+  licensed moveit_resources_fanuc_description package. This wrapper adds only
+  an optional ros2_control mock system; real hardware is owned by the
+  fanucpy_ros2_driver process.
+-->
+<robot name="fanuc_m10ia" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="use_mock_hardware" default="false"/>
+  <xacro:arg
+    name="initial_positions_file"
+    default="$(find fanuc_m10ia_moveit_config)/config/initial_positions.yaml"/>
+
+  <xacro:include
+    filename="$(find moveit_resources_fanuc_description)/urdf/fanuc.urdf"/>
+
+  <xacro:if value="$(arg use_mock_hardware)">
+    <xacro:property
+      name="initial_positions_file_path"
+      value="$(arg initial_positions_file)"/>
+    <xacro:property
+      name="initial_positions"
+      value="${xacro.load_yaml(initial_positions_file_path)['initial_positions']}"/>
+
+    <ros2_control name="FanucM10iAMockSystem" type="system">
+      <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+        <param name="calculate_dynamics">false</param>
+      </hardware>
+
+      <joint name="joint_1">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['joint_1']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="joint_2">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['joint_2']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="joint_3">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['joint_3']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="joint_4">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['joint_4']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="joint_5">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['joint_5']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="joint_6">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['joint_6']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+  </xacro:if>
+</robot>

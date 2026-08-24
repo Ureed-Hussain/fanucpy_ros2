@@ -1,0 +1,63 @@
+name: Bug report
+description: Report reproducible incorrect behavior in the ROS packages.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove controller IP addresses, credentials, proprietary controller files, and other site-sensitive information before submitting.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I reproduced this with motion disabled or in mock mode when possible.
+          required: true
+        - label: I have removed site-sensitive and proprietary information.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version or commit
+      placeholder: 0.8.0 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Offline/unit test
+        - MoveIt mock mode
+        - Real robot, state only
+        - Real robot, motion enabled
+    validations:
+      required: true
+  - type: textarea
+    id: system
+    attributes:
+      label: System details
+      description: Include Ubuntu, ROS distribution, Python, fanucpy, robot model, and controller software versions. Do not include the controller IP.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reproducible sequence and sanitized commands.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized logs
+    validations:
+      required: true

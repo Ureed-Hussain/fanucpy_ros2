@@ -1,0 +1,27 @@
+uint8 DISCONNECTED=0
+uint8 CONNECTING=1
+uint8 CONNECTED=2
+uint8 ERROR=3
+
+std_msgs/Header header
+uint8 state
+string message
+string robot_model
+string host
+uint16 port
+bool motion_commands_enabled
+float64 max_translation_step_mm
+float64 max_rotation_step_deg
+uint16 default_cartesian_velocity_mm_s
+uint16 max_cartesian_velocity_mm_s
+uint8 default_joint_velocity_percent
+uint8 max_joint_velocity_percent
+string trajectory_execution_mode
+bool goal_only_execution_enabled
+float64 goal_only_max_joint_delta_rad
+string trajectory_action_name
+bool controller_writes_enabled
+bool program_execution_enabled
+string[] allowed_tp_programs
+string gripper_output_type
+uint32 gripper_output_number

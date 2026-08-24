@@ -1,0 +1,9 @@
+# Write one Robot Digital Output (RDO) or Digital Output (DOUT).
+uint8 RDO=1
+uint8 DOUT=2
+uint8 output_type
+uint32 output_number
+bool value
+---
+bool success
+string message

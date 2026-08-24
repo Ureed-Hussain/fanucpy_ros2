@@ -1,0 +1,10 @@
+# Write one FANUC numeric R[] register.
+uint8 INTEGER=1
+uint8 FLOAT=2
+uint16 register_number
+uint8 value_type
+int64 integer_value
+float64 float_value
+---
+bool success
+string message

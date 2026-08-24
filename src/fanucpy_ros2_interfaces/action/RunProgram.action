@@ -1,0 +1,8 @@
+# Run one explicitly allowlisted FANUC teach-pendant program.
+string program_name
+---
+bool success
+int32 response_code
+string message
+---
+string state

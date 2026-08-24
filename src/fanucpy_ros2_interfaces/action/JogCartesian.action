@@ -1,0 +1,22 @@
+# Execute one bounded Cartesian offset in the active FANUC user frame.
+# Translation offsets are millimetres. W/P/R offsets are degrees.
+std_msgs/Header header
+float64 delta_x_mm
+float64 delta_y_mm
+float64 delta_z_mm
+float64 delta_w_deg
+float64 delta_p_deg
+float64 delta_r_deg
+# Requested linear velocity. Zero selects the driver's conservative default.
+uint16 velocity_mm_s
+---
+bool success
+string message
+float64 target_x_mm
+float64 target_y_mm
+float64 target_z_mm
+float64 target_w_deg
+float64 target_p_deg
+float64 target_r_deg
+---
+string state

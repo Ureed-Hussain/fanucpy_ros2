@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a student-facing ROS interface or improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Student problem
+      description: What task is difficult with the current interfaces?
+    validations:
+      required: true
+  - type: textarea
+    id: interface
+    attributes:
+      label: Proposed ROS interface
+      description: Describe the topic, service, action, launch option, or example and its units.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and compatibility considerations
+      description: Explain motion, cancellation, controller-resource, model, and mock/real implications.
+    validations:
+      required: true

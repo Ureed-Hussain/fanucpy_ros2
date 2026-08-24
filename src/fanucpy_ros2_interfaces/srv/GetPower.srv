@@ -1,0 +1,5 @@
+# Read the controller's instantaneous power estimate in watts.
+---
+bool success
+float64 watts
+string message

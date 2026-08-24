@@ -1,0 +1,24 @@
+# Load this file into move_group when using MoveItSimpleControllerManager.
+# Duration monitoring is disabled because the current MAPPDK bridge preserves
+# waypoints but cannot reproduce MoveIt's time_from_start schedule.
+trajectory_execution:
+  allowed_start_tolerance: 0.05
+  execution_duration_monitoring: false
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - fanuc_arm_controller
+
+  fanuc_arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+      - joint_5
+      - joint_6

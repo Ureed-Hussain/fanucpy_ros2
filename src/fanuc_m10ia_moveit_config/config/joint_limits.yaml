@@ -1,0 +1,36 @@
+# These limits match the ROS-Industrial/MoveIt M-10iA model. Verify them
+# against the exact mechanical-unit manual and installed FANUC options.
+default_velocity_scaling_factor: 0.1
+default_acceleration_scaling_factor: 0.1
+
+joint_limits:
+  joint_1:
+    has_velocity_limits: true
+    max_velocity: 3.67
+    has_acceleration_limits: true
+    max_acceleration: 0.734
+  joint_2:
+    has_velocity_limits: true
+    max_velocity: 3.32
+    has_acceleration_limits: true
+    max_acceleration: 0.664
+  joint_3:
+    has_velocity_limits: true
+    max_velocity: 3.67
+    has_acceleration_limits: true
+    max_acceleration: 0.734
+  joint_4:
+    has_velocity_limits: true
+    max_velocity: 6.98
+    has_acceleration_limits: true
+    max_acceleration: 1.396
+  joint_5:
+    has_velocity_limits: true
+    max_velocity: 6.98
+    has_acceleration_limits: true
+    max_acceleration: 1.396
+  joint_6:
+    has_velocity_limits: true
+    max_velocity: 10.47
+    has_acceleration_limits: true
+    max_acceleration: 2.094

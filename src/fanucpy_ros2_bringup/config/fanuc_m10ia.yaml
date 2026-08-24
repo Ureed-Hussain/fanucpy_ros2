@@ -1,0 +1,76 @@
+/**:
+  ros__parameters:
+    # Controller connection. Port 18735 is the fanucpy/MAPPDK default.
+    # RFC 5737 documentation address. Replace it with the controller address.
+    robot_ip: "192.0.2.10"
+    robot_port: 18735
+    robot_model: "FANUC M-10iA"
+    socket_timeout_sec: 5.0
+    reconnect_delay_sec: 2.0
+
+    # Controller utility writes and TP program calls are independent, explicit
+    # safety gates. Replace the empty-string sentinel with reviewed TP names.
+    enable_controller_writes: false
+    enable_program_execution: false
+    allowed_tp_programs: [""]
+    # Some MAPPDK builds stop servicing the current socket after mappdkcall.
+    # Recycle and verify the socket before completing the ROS program action.
+    recycle_connection_after_program: true
+    program_reconnect_timeout_sec: 15.0
+    program_state_probe_timeout_sec: 5.0
+
+    # Start conservatively. Increase only after checking controller load and
+    # stable TCP response times.
+    state_poll_rate_hz: 5.0
+
+    # Motion stays off during normal state-only bringup. Enabling it allows
+    # bounded /fanuc/jog_cartesian action goals to execute.
+    enable_motion_commands: false
+    max_translation_step_mm: 50.0
+    max_rotation_step_deg: 2.0
+    cartesian_velocity_mm_s: 25
+    # Example M-10iA operational ceiling used by the teleop 100% preset. Verify
+    # this value against the mechanical manual and site risk assessment.
+    max_cartesian_velocity_mm_s: 2000
+    cartesian_acceleration_percent: 20
+
+    # This label describes the controller coordinates returned by curpos.
+    # Verify the active FANUC frame before using the PoseStamped output.
+    frame_id: "fanuc_world"
+
+    joint_names:
+      - "joint_1"
+      - "joint_2"
+      - "joint_3"
+      - "joint_4"
+      - "joint_5"
+      - "joint_6"
+
+    # MoveIt-compatible FollowJointTrajectory bridge. This first controller
+    # executes every validated waypoint with CNT=0; it preserves the joint
+    # path but does not reproduce MoveIt's time_from_start schedule.
+    trajectory_action_name: "/fanuc_arm_controller/follow_joint_trajectory"
+    max_trajectory_points: 500
+    max_joint_step_rad: 0.35
+    # Safe default: preserve and exact-stop at every MoveIt waypoint.
+    # goal_only skips the collision-checked path and commands only its final
+    # joint target, so it also requires allow_goal_only_execution: true.
+    trajectory_execution_mode: "stop_at_waypoints"
+    allow_goal_only_execution: false
+    goal_only_max_joint_delta_rad: 0.35
+    trajectory_start_tolerance_rad: 0.05
+    trajectory_path_tolerance_rad: 0.05
+    trajectory_goal_tolerance_rad: 0.02
+    joint_velocity_percent: 5
+    max_joint_velocity_percent: 10
+    joint_acceleration_percent: 20
+
+    # M-10iA joint limits used by the current mesh/xacro. Verify all limits
+    # against the exact mechanical unit and option configuration before use.
+    joint_lower_limits_rad: [-3.14, -1.57, -3.14, -3.31, -3.31, -6.28]
+    joint_upper_limits_rad: [3.14, 2.79, 4.61, 3.31, 3.31, 6.28]
+    joint_velocity_limits_rad_s: [3.67, 3.32, 3.67, 6.98, 6.98, 10.47]
+
+    # Output used by the /fanuc/set_gripper convenience service.
+    ee_do_type: "RDO"
+    ee_do_num: 7
