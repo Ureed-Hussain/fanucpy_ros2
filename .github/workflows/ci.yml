@@ -25,6 +25,7 @@ jobs:
           required-ros-distributions: humble
 
       - name: Build and test workspace
+        id: ros_ci
         uses: ros-tooling/action-ros-ci@v0.4
         with:
           target-ros2-distro: humble
@@ -39,3 +40,35 @@ jobs:
             fanucpy_ros2_visualization
           coverage-result: false
           rosdep-check: true
+
+      - name: Report ROS test failures
+        if: failure()
+        shell: bash
+        run: |
+          workspace="${GITHUB_WORKSPACE}/${{ steps.ros_ci.outputs.ros-workspace-directory-name }}"
+          result_root="${workspace}/build"
+          found_failure=false
+
+          while IFS= read -r result; do
+            found_failure=true
+            details=$({ grep -n -A 12 -B 2 -E '<(failure|error)([ >])' "${result}" || true; } \
+              | head -c 3000 \
+              | tr '\n' ' ')
+            echo "::error title=ROS test failure::${result}: ${details}"
+          done < <(grep -rlE '<(failure|error)([ >])' "${result_root}" \
+            --include='*.xml' 2>/dev/null || true)
+
+          if [[ "${found_failure}" == false ]]; then
+            echo "::error title=ROS CI command failure::No failing xUnit file was produced; inspect the uploaded colcon logs."
+          fi
+
+      - name: Upload ROS CI logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ros-ci-failure-${{ github.run_id }}
+          path: |
+            ${{ github.workspace }}/${{ steps.ros_ci.outputs.ros-workspace-directory-name }}/build/**/test_results/**
+            ${{ github.workspace }}/${{ steps.ros_ci.outputs.ros-workspace-directory-name }}/log/**
+          if-no-files-found: warn
+          retention-days: 14
