@@ -1,0 +1,2 @@
+# Preserve the byte-identical upstream KAREL bundle, including original spaces.
+src/fanucpy_ros2_controller/fanuc_driver/*.kl whitespace=-blank-at-eol

@@ -1,8 +1,8 @@
 fanucpy_ros2
 Copyright 2026 Muhammad Ureed Hussain
 
-This product depends on fanucpy, an Apache-2.0 licensed project developed by
-Agajan Torayev and contributors. The experimental controller-side MAPPDK
-program-call patch is a modification intended to be reviewed and applied to
-fanucpy source. See
+This product depends on and redistributes the controller-side MAPPDK bundle
+from fanucpy, an Apache-2.0 licensed project developed by Agajan Torayev and
+contributors. The experimental controller-side MAPPDK program-call patch is a
+modification intended to be reviewed and applied to fanucpy source. See
 https://github.com/torayeff/fanucpy for its original source and notices.

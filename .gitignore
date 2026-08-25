@@ -14,3 +14,4 @@ htmlcov/
 .idea/
 .DS_Store
 *.swp
+/fanucpy.zip

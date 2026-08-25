@@ -27,6 +27,7 @@ The current release provides:
 - model-selectable live RViz2 visualization using realistic mesh descriptions;
 - a MoveIt-compatible standard `FollowJointTrajectory` real-robot bridge;
 - matching mock and real M-10iA MoveIt 2 environments;
+- a versioned MAPPDK controller bundle with integrity checks and provenance;
 - the BSD-licensed ROS-Industrial/MoveIt M-10iA CAD model as the default;
 - one bringup launch file and one YAML configuration file.
 
@@ -58,16 +59,19 @@ a trademark of its respective owner.
 
 ## Controller requirements
 
-The controller-side MAPPDK software supplied by `fanucpy` must already be
-installed and running. The upstream setup requires:
+The controller-side MAPPDK software must be installed and running. A complete,
+versioned copy of the bundle supplied by the project author is now installed by
+`fanucpy_ros2_controller`; it is never transferred to a robot automatically.
+The upstream setup requires:
 
 - R632 - KAREL;
 - R648 - User Socket Messaging;
 - server tag S8 configured on TCP port `18735` by default.
 
 MAPPDK reserves UFRAME 8, UTOOL 8, R[81-83], and PR[81]. Do not reuse these
-resources in student programs. See `docs/controller_setup.md` for the complete
-pre-flight checklist.
+resources in student programs. See
+[`docs/controller_setup.md`](docs/controller_setup.md) for bundle verification,
+installation, compatibility warnings, and the complete pre-flight checklist.
 
 ## Host requirements
 
@@ -84,9 +88,17 @@ ROS 2 Humble's `rclpy` extension is built for Python 3.10.
 The driver's
 [`robot.py`](src/fanucpy_ros2_driver/fanucpy_ros2_driver/robot.py) subclasses
 the installed `fanucpy.Robot` and contains the project-specific, validated
-numeric-register support. Students do not need to edit or replace
+numeric-register support. It also retains the supplied six-axis position-
+register methods after correcting their validation, typing, response handling,
+and command-forwarding bug. Students do not need to edit or replace
 `site-packages/fanucpy/robot.py`; the ROS driver loads this compatibility class
 automatically while retaining upstream fanucpy for all other operations.
+
+These extension methods require matching commands in the controller's compiled
+MAPPDK server. The controller source supplied in `fanucpy.zip` is an unmodified
+upstream baseline and does not contain the numeric- or position-register command
+handlers. Keep a working extended controller binary when those services are
+required; see the controller setup guide before replacing any `.PC` file.
 
 ## Build
 
@@ -328,7 +340,7 @@ ros2 launch fanuc_m10ia_moveit_config fanuc_m10ia_moveit.launch.py \
 | Package | Purpose |
 | --- | --- |
 | `fanucpy_ros2_interfaces` | Language-neutral ROS messages, services, and actions |
-| `fanucpy_ros2_controller` | Experimental controller-side KAREL patch and review guidance |
+| `fanucpy_ros2_controller` | Versioned MAPPDK controller bundle, integrity manifest, and experimental patch |
 | `fanucpy_ros2_driver` | Python connection and state driver; sole socket owner |
 | `fanucpy_ros2_bringup` | Launch files and site configuration |
 | `fanucpy_ros2_examples` | Guarded student-facing Python examples |

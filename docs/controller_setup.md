@@ -28,6 +28,37 @@ Install the controller files as one matched build. A `.KL` source file copied
 to a controller does not update an already compiled `.PC` binary, and mixing
 files from different MAPPDK revisions can expose different command sets.
 
+### Repository controller bundle
+
+`fanucpy_ros2_controller` installs the complete controller bundle supplied in
+the project's `fanucpy.zip`. After building and sourcing the workspace, find it
+with:
+
+```bash
+ros2 pkg prefix --share fanucpy_ros2_controller
+```
+
+Open the returned package directory and verify its `fanuc_driver` subdirectory:
+
+```bash
+cd <package-share>/fanuc_driver
+sha256sum --check SHA256SUMS
+```
+
+The ready-to-load set contains `mappdk.ls`, `mappdk_server.pc`,
+`mappdk_logger.pc`, `mappdk_move.ls`, and `mappdk_movel.ls`. The `.KL` files are
+the matching sources for review and translation with FANUC tooling. Back up the
+controller first, stop the running server with `FCTN -> ABORT ALL`, transfer
+the reviewed matched set using the site's approved USB or FTP procedure, and
+run `MAPPDK` again.
+
+The supplied bundle is the upstream MAPPDK baseline. Its `mappdk_cmd.kl` does
+not implement the project's `setregint`, `setregflt`, `getreg`, `setpr`, or
+`getpr` extension commands. Replacing a working custom `MAPPDK_SERVER.PC` with
+the baseline binary may remove register support. The ROS driver reports
+`wrong-command` when a compiled controller server lacks a requested capability.
+Do not infer controller support only from methods present in Python.
+
 ## Controller aborts and reconnects
 
 The ROS driver automatically retries after ordinary network loss. For TP

@@ -4,6 +4,13 @@ All notable project changes are documented here.
 
 ## Unreleased
 
+- Integrated the complete MAPPDK controller bundle supplied in `fanucpy.zip`
+  into `fanucpy_ros2_controller`, with upstream provenance, transfer checksums,
+  install guidance, and offline integrity tests.
+- Preserved the supplied six-axis position-register methods in the maintained
+  `robot.py`, correcting their invalid forwarding keyword, annotations, return
+  type, and missing validation. Documented that the supplied MAPPDK baseline
+  does not itself implement the register-extension wire commands.
 - Standardized the tested M-10iA controller address (`192.168.0.177`) across
   launch defaults, configuration, and all student documentation.
 - Added a source-controlled `fanucpy.Robot` compatibility subclass containing
