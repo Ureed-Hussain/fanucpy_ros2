@@ -5,6 +5,10 @@
 well-defined connection to a FANUC robot controller and exposes robot state
 using standard ROS messages.
 
+This package is made especially for FANUC controllers that do not provide a
+ROS 2-compatible interface. It helps students control a physical robot while
+working in a familiar ROS 2 environment.
+
 This repository is a multi-package ROS 2 workspace. Its packages use lowercase
 names following ROS package conventions.
 
@@ -351,6 +355,7 @@ ros2 launch fanuc_m10ia_moveit_config fanuc_m10ia_moveit.launch.py \
 See `docs/architecture.md` before contributing a new command or example.
 The complete topic and parameter contract is in `docs/interfaces.md`.
 
-## License
+## Author
 
-Apache License 2.0. See `LICENSE`.
+Muhammad Ureed Hussain<br>
+IMViA Laboratory, France
