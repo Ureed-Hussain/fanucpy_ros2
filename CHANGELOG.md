@@ -4,6 +4,9 @@ All notable project changes are documented here.
 
 ## Unreleased
 
+- Declared the repository's double-quote convention explicitly so ROS CI lint
+  results remain deterministic when the optional `flake8-quotes` plugin is
+  installed by the build environment.
 - Integrated the complete MAPPDK controller bundle supplied in `fanucpy.zip`
   into `fanucpy_ros2_controller`, with upstream provenance, transfer checksums,
   install guidance, and offline integrity tests.
