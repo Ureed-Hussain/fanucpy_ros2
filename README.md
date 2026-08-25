@@ -1,5 +1,9 @@
 # fanucpy_ros2
 
+
+https://github.com/user-attachments/assets/00c2d331-1b5b-4cf0-913a-09fb140dd65a
+
+
 `fanucpy_ros2` is a student-friendly ROS 2 integration layer for
 [`fanucpy`](https://github.com/torayeff/fanucpy). It gives ROS 2 nodes a single,
 well-defined connection to a FANUC robot controller and exposes robot state
