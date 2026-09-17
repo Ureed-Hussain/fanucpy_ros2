@@ -82,6 +82,7 @@ class FanucpyTransport:
         host: str,
         port: int = 18735,
         socket_timeout_sec: float = 5.0,
+        motion_socket_timeout_sec: float = 60.0,
         ee_do_type: Optional[str] = "RDO",
         ee_do_num: Optional[int] = 7,
         robot_factory: Optional[RobotFactory] = None,
@@ -92,11 +93,19 @@ class FanucpyTransport:
             raise ValueError("Robot port must be in the range 1..65535")
         if float(socket_timeout_sec) <= 0.0:
             raise ValueError("Socket timeout must be greater than zero")
+        if float(motion_socket_timeout_sec) <= 0.0:
+            raise ValueError("Motion socket timeout must be greater than zero")
+        if float(motion_socket_timeout_sec) < float(socket_timeout_sec):
+            raise ValueError(
+                "Motion socket timeout must not be shorter than the normal "
+                "socket timeout"
+            )
 
         self.robot_model = str(robot_model)
         self.host = host.strip()
         self.port = int(port)
         self.socket_timeout_sec = float(socket_timeout_sec)
+        self.motion_socket_timeout_sec = float(motion_socket_timeout_sec)
         self.ee_do_type = ee_do_type
         self.ee_do_num = ee_do_num
         self._robot_factory = robot_factory
@@ -204,6 +213,42 @@ class FanucpyTransport:
             cartesian_mm_deg=cartesian,  # type: ignore[arg-type]
         )
 
+    def _run_motion_unlocked(
+        self,
+        operation: Callable[[Any], Tuple[int, str]],
+    ) -> Tuple[int, str]:
+        """Run a blocking motion with its longer, motion-only timeout."""
+        robot = self._require_robot()
+        comm_sock = getattr(robot, "comm_sock", None)
+        timeout_changed = False
+        previous_timeout: Optional[float] = self.socket_timeout_sec
+        try:
+            if comm_sock is not None and hasattr(comm_sock, "settimeout"):
+                if hasattr(comm_sock, "gettimeout"):
+                    previous_timeout = comm_sock.gettimeout()
+                comm_sock.settimeout(self.motion_socket_timeout_sec)
+                timeout_changed = True
+            return operation(robot)
+        except OSError as exc:
+            self._disconnect_unlocked()
+            raise FanucpyTransportError(
+                "Motion socket operation failed with a timeout ceiling of "
+                f"{self.motion_socket_timeout_sec:g} seconds: {exc}. The "
+                "socket session was reset, but physical robot motion status "
+                "is unknown; do not automatically repeat this command"
+            ) from exc
+        finally:
+            if (
+                timeout_changed
+                and self._connected
+                and self._robot is robot
+                and hasattr(comm_sock, "settimeout")
+            ):
+                try:
+                    comm_sock.settimeout(previous_timeout)
+                except OSError:
+                    self._disconnect_unlocked()
+
     def jog_cartesian(
         self,
         offset_mm_deg: Sequence[Numeric],
@@ -233,13 +278,49 @@ class FanucpyTransport:
                 current_value + offset_value
                 for current_value, offset_value in zip(current, offset)
             )
-            code, message = robot.move(
-                "pose",
-                list(target),
-                velocity=int(velocity_mm_s),
-                acceleration=int(acceleration_percent),
-                cnt_val=0,
-                linear=True,
+            code, message = self._run_motion_unlocked(
+                lambda active_robot: active_robot.move(
+                    "pose",
+                    list(target),
+                    velocity=int(velocity_mm_s),
+                    acceleration=int(acceleration_percent),
+                    cnt_val=0,
+                    linear=True,
+                )
+            )
+            return CartesianMotionResult(
+                target_mm_deg=target,  # type: ignore[arg-type]
+                response_code=int(code),
+                response_message=str(message),
+            )
+
+    def move_cartesian(
+        self,
+        target_mm_deg: Sequence[Numeric],
+        velocity_mm_s: int,
+        acceleration_percent: int,
+    ) -> CartesianMotionResult:
+        """Execute one direct absolute Cartesian FANUC pose command."""
+        if len(target_mm_deg) != 6:
+            raise ValueError("An absolute Cartesian move requires six values")
+        target = tuple(float(value) for value in target_mm_deg)
+        if not all(math.isfinite(value) for value in target):
+            raise ValueError("Absolute Cartesian target values must be finite")
+        if not 1 <= int(velocity_mm_s) <= 9999:
+            raise ValueError("Cartesian velocity must be in the range 1..9999 mm/s")
+        if not 1 <= int(acceleration_percent) <= 100:
+            raise ValueError("Acceleration must be in the range 1..100 percent")
+
+        with self._lock:
+            code, message = self._run_motion_unlocked(
+                lambda active_robot: active_robot.move(
+                    "pose",
+                    list(target),
+                    velocity=int(velocity_mm_s),
+                    acceleration=int(acceleration_percent),
+                    cnt_val=0,
+                    linear=True,
+                )
             )
             return CartesianMotionResult(
                 target_mm_deg=target,  # type: ignore[arg-type]
@@ -267,15 +348,17 @@ class FanucpyTransport:
             )
 
         with self._lock:
-            robot = self._require_robot()
-            code, message = robot.move(
-                "joint",
-                list(target),
-                velocity=int(velocity_percent),
-                acceleration=int(acceleration_percent),
-                cnt_val=0,
-                linear=False,
+            code, message = self._run_motion_unlocked(
+                lambda active_robot: active_robot.move(
+                    "joint",
+                    list(target),
+                    velocity=int(velocity_percent),
+                    acceleration=int(acceleration_percent),
+                    cnt_val=0,
+                    linear=False,
+                )
             )
+            robot = self._require_robot()
             actual = self._finite_values(robot.get_curjpos(), expected=6)
             return JointMotionResult(
                 target_deg=target,  # type: ignore[arg-type]

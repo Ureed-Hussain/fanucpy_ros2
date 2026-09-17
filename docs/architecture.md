@@ -45,6 +45,74 @@ The visualization package is controller-independent. It consumes only standard
 ROS state, so RViz, teleop, Python nodes, and C++ nodes never create additional
 fanucpy connections.
 
+## Optional perception boundary
+
+The external `danger_vision` detector remains responsible for the camera,
+YOLO checkpoint, tracking, homography, and schema-version-2 JSON output. The
+`fanucpy_ros2_vision_bridge` validates each atomic batch and republishes it as
+typed `VisionDetectionArray` data.
+
+```text
+camera + external danger_vision detector
+                 |
+       /danger/model/observations
+                 |
+      fanucpy_ros2_vision_bridge
+                 |
+       /fanuc/vision/detections
+                 |
+     exact-label counts + projected
+       pixels + calibrated XY
+                 |
+       Ollama observation answers
+```
+
+The observation stream contains both normal and dangerous visual objects and
+marks whether projected-pixel, conveyor-plane, and calibrated eye-to-hand XY
+geometry is valid. The default 2D affine values reproduce the active
+`phase_two.py` laboratory calibration and are configuration parameters rather
+than a universal camera-to-robot transform.
+The original dangerous-only `/danger/model/detections` stream remains isolated
+for existing conveyor-planner consumers. The bridge has no dependency on
+`fanucpy`, does not open a controller socket, and cannot command the driver.
+Target selection, Z estimation, grasp planning, and physical execution are
+deliberately outside this observation stage.
+
+## Unified assistant and guarded workcell workflows
+
+`fanucpy_ros2_assistant` composes the existing task-planner client with fresh
+typed vision observations. Ordinary jog, absolute target, joint, TP-program,
+status, and vision questions continue through their existing implementations.
+An object-directed request such as `go to battery one` uses a deterministic
+path instead of asking Ollama to reproduce numeric coordinates:
+
+```text
+human object request
+        |
+fresh typed detection + deterministic object alias
+        |
+calibrated X/Y + current robot Z/W/P/R
+        |
+dry-run preview
+        |
+CLI permission + assistant gate + two driver gates + typed confirmation
+        |
+new vision/state samples + same track/label/identity/calibration check
+        |
+/fanuc/move_cartesian
+```
+
+The assistant can also compose the existing actions into separately gated,
+deterministic workcell workflows. A motion-only pick approaches a selected
+object X/Y at configured Z, descends only Z, and retracts only Z, verifying
+fresh Cartesian feedback before each later stage. A named drop command sends a
+configured absolute pose. Home wording calls a configured, driver-allowlisted
+TP program. These workflows do not use Ollama to generate numeric targets.
+
+This stage assumes a stationary scene and has no connection to gripper
+control. It is not a moving-object interceptor, path planner, reachability
+solver, grasp planner, or collision checker.
+
 ## MoveIt execution
 
 `fanucpy_ros2_trajectory_controller` contains the standard action server and
@@ -81,6 +149,5 @@ Raw `send_cmd`, connection lifecycle, and unrestricted system-variable writes
 remain private. This prevents student nodes from bypassing validation or
 desynchronizing the driver's sole controller socket.
 
-Later milestones will add richer Cartesian target actions, matching C++
-examples, vision-node migration, and a fake MAPPDK server for integration
-testing.
+Later milestones will add matching C++ examples, gripper-aware manipulation,
+and a fake MAPPDK server for integration testing.

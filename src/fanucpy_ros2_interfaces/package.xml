@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>fanucpy_ros2_interfaces</name>
-  <version>0.8.0</version>
+  <version>0.11.0</version>
   <description>Language-neutral ROS 2 interfaces for the fanucpy driver.</description>
   <maintainer email="157709940+Ureed-Hussain@users.noreply.github.com">Muhammad Ureed Hussain</maintainer>
   <license>Apache-2.0</license>

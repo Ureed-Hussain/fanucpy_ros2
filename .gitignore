@@ -15,3 +15,13 @@ htmlcov/
 .DS_Store
 *.swp
 /fanucpy.zip
+
+# Private or third-party machine-learning checkpoints are external inputs.
+*.pt
+*.pth
+*.onnx
+*.engine
+*.ckpt
+*.weights
+*.safetensors
+*.tflite

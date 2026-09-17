@@ -1,0 +1,18 @@
+fanucpy_vision_bridge:
+  ros__parameters:
+    input_topic: "/danger/model/observations"
+    output_topic: "/fanuc/vision/detections"
+    status_topic: "/fanuc/vision/status"
+    output_frame_id: "conveyor_m"
+    expected_schema_version: 2
+    maximum_detections: 100
+    maximum_payload_bytes: 1000000
+
+    # Current active affine values from danger_vision/phase_two.py.
+    # [x_world, y_world] = A * [x_conveyor_mm, y_conveyor_mm] + b
+    eye_to_hand_enabled: true
+    eye_to_hand_frame_id: "fanuc_world"
+    eye_to_hand_calibration: "phase_two_active_affine"
+    eye_to_hand_matrix:
+      [-0.01645279, -1.00536662, -1.00400079, -0.00456943]
+    eye_to_hand_translation_mm: [-170.43887235, 1309.18504954]

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "name": "robot_status",
+  "description": "Read current robot and vision status. No motion command.",
+  "action": "status"
+}

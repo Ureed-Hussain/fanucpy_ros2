@@ -10,10 +10,15 @@ string robot_model
 string host
 uint16 port
 bool motion_commands_enabled
+bool absolute_cartesian_commands_enabled
+bool absolute_cartesian_bounds_enabled
+float64[6] absolute_cartesian_lower_bounds
+float64[6] absolute_cartesian_upper_bounds
 float64 max_translation_step_mm
 float64 max_rotation_step_deg
 uint16 default_cartesian_velocity_mm_s
 uint16 max_cartesian_velocity_mm_s
+float64 motion_socket_timeout_sec
 uint8 default_joint_velocity_percent
 uint8 max_joint_velocity_percent
 string trajectory_execution_mode

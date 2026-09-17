@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "examples": [
+    {
+      "name": "teleop",
+      "aliases": ["keyboard teleop", "keyboard", "teleoperation"],
+      "description": "Open keyboard teleop in this terminal. It starts disarmed; SPACE arms future key commands. Q returns after the current jog finishes.",
+      "kind": "run",
+      "package": "fanucpy_ros2_examples",
+      "target": "fanucpy_keyboard_teleop",
+      "arguments": [],
+      "requires_driver": true,
+      "requires_joint_states": false,
+      "conflict_nodes": ["fanucpy_keyboard_teleop", "move_group"]
+    },
+    {
+      "name": "moveit2",
+      "aliases": ["moveit", "move it", "move it 2", "movite", "movite2"],
+      "description": "Open the M-10iA MoveIt planning interface and RViz using the existing real driver. This does not request a plan or Execute; use the GUI deliberately. Ctrl+C here closes the launch and returns to the assistant.",
+      "kind": "launch",
+      "package": "fanuc_m10ia_moveit_config",
+      "target": "fanuc_m10ia_moveit_existing_driver.launch.py",
+      "arguments": [],
+      "requires_driver": true,
+      "requires_joint_states": true,
+      "conflict_nodes": ["fanucpy_keyboard_teleop", "move_group", "fanuc_robot_state_publisher", "fanuc_world_to_base", "controller_manager"]
+    }
+  ]
+}

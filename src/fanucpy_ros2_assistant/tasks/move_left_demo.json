@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "move_left_demo",
+  "description": "One relative -X jog of 5 mm at 20 mm/s; review workcell clearance first.",
+  "action": "cartesian_jog",
+  "frame_id": "fanuc_world",
+  "delta_x_mm": -5.0,
+  "delta_y_mm": 0.0,
+  "delta_z_mm": 0.0,
+  "delta_w_deg": 0.0,
+  "delta_p_deg": 0.0,
+  "delta_r_deg": 0.0,
+  "velocity_mm_s": 20
+}

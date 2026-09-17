@@ -1,0 +1,21 @@
+fanucpy_prompt_control:
+  ros__parameters:
+    action_name: "/fanuc/jog_cartesian"
+    status_topic: "/fanuc/driver_status"
+    cartesian_state_topic: "/fanuc/cartesian_state"
+    frame_id: "fanuc_world"
+
+    # Defaults used only when the prompt does not include an amount.
+    default_translation_mm: 10.0
+    default_rotation_deg: 1.0
+
+    # Local dry-run limits. Real execution is checked again against the live
+    # driver limits published on /fanuc/driver_status.
+    max_translation_step_mm: 50.0
+    max_rotation_step_deg: 2.0
+    max_cartesian_velocity_mm_s: 2000
+
+    status_timeout_sec: 5.0
+    action_server_timeout_sec: 5.0
+    action_result_timeout_sec: 120.0
+    max_cartesian_state_age_sec: 2.0

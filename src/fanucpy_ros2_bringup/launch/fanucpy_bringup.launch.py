@@ -53,6 +53,11 @@ def generate_launch_description() -> LaunchDescription:
             description="Timeout for blocking fanucpy socket operations.",
         ),
         DeclareLaunchArgument(
+            "motion_socket_timeout_sec",
+            default_value="60.0",
+            description="Longer timeout used only while motion executes.",
+        ),
+        DeclareLaunchArgument(
             "reconnect_delay_sec",
             default_value="2.0",
             description="Delay before reconnecting after an error.",
@@ -65,7 +70,15 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "enable_motion_commands",
             default_value="false",
-            description="Allow bounded motion actions when explicitly true.",
+            description="Allow robot motion actions when explicitly true.",
+        ),
+        DeclareLaunchArgument(
+            "enable_absolute_cartesian_commands",
+            default_value="false",
+            choices=["true", "false"],
+            description=(
+                "Allow direct absolute Cartesian action goals when true."
+            ),
         ),
         DeclareLaunchArgument(
             "enable_controller_writes",
@@ -172,6 +185,10 @@ def generate_launch_description() -> LaunchDescription:
                     LaunchConfiguration("socket_timeout_sec"),
                     value_type=float,
                 ),
+                "motion_socket_timeout_sec": ParameterValue(
+                    LaunchConfiguration("motion_socket_timeout_sec"),
+                    value_type=float,
+                ),
                 "reconnect_delay_sec": ParameterValue(
                     LaunchConfiguration("reconnect_delay_sec"),
                     value_type=float,
@@ -179,6 +196,12 @@ def generate_launch_description() -> LaunchDescription:
                 "frame_id": LaunchConfiguration("frame_id"),
                 "enable_motion_commands": ParameterValue(
                     LaunchConfiguration("enable_motion_commands"),
+                    value_type=bool,
+                ),
+                "enable_absolute_cartesian_commands": ParameterValue(
+                    LaunchConfiguration(
+                        "enable_absolute_cartesian_commands"
+                    ),
                     value_type=bool,
                 ),
                 "enable_controller_writes": ParameterValue(

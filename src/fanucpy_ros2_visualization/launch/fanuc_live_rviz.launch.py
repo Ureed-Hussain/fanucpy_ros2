@@ -40,7 +40,13 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "enable_motion_commands",
             default_value="false",
-            description="Allow bounded motion actions only when explicitly true.",
+            description="Allow robot motion actions only when explicitly true.",
+        ),
+        DeclareLaunchArgument(
+            "enable_absolute_cartesian_commands",
+            default_value="false",
+            choices=["true", "false"],
+            description="Allow direct absolute Cartesian targets when true.",
         ),
         DeclareLaunchArgument(
             "enable_controller_writes",
@@ -122,6 +128,9 @@ def generate_launch_description() -> LaunchDescription:
             "state_poll_rate_hz": LaunchConfiguration("state_poll_rate_hz"),
             "enable_motion_commands": LaunchConfiguration(
                 "enable_motion_commands"
+            ),
+            "enable_absolute_cartesian_commands": LaunchConfiguration(
+                "enable_absolute_cartesian_commands"
             ),
             "enable_controller_writes": LaunchConfiguration(
                 "enable_controller_writes"

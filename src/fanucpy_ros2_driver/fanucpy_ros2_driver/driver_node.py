@@ -16,7 +16,7 @@ from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import JointState
 from std_srvs.srv import SetBool
 
-from fanucpy_ros2_interfaces.action import JogCartesian, RunProgram
+from fanucpy_ros2_interfaces.action import JogCartesian, MoveCartesian, RunProgram
 from fanucpy_ros2_interfaces.msg import CartesianState, DriverStatus
 from fanucpy_ros2_interfaces.srv import (
     GetDigitalOutput,
@@ -31,7 +31,11 @@ from fanucpy_ros2_trajectory_controller.controller import (
 )
 
 from .conversions import fanuc_wpr_degrees_to_quaternion
-from .motion import validate_cartesian_offset, validate_cartesian_velocity
+from .motion import (
+    validate_cartesian_offset,
+    validate_cartesian_target,
+    validate_cartesian_velocity,
+)
 from .transport import FanucpyDependencyError, FanucpyTransport, RobotStateSnapshot
 
 
@@ -45,6 +49,7 @@ class FanucpyDriverNode(Node):
         self.declare_parameter("robot_port", 18735)
         self.declare_parameter("robot_model", "Fanuc")
         self.declare_parameter("socket_timeout_sec", 5.0)
+        self.declare_parameter("motion_socket_timeout_sec", 60.0)
         self.declare_parameter("reconnect_delay_sec", 2.0)
         self.declare_parameter("state_poll_rate_hz", 5.0)
         self.declare_parameter("frame_id", "fanuc_world")
@@ -57,6 +62,16 @@ class FanucpyDriverNode(Node):
         self.declare_parameter("program_reconnect_timeout_sec", 15.0)
         self.declare_parameter("program_state_probe_timeout_sec", 5.0)
         self.declare_parameter("enable_motion_commands", False)
+        self.declare_parameter("enable_absolute_cartesian_commands", False)
+        self.declare_parameter("enforce_absolute_cartesian_bounds", False)
+        self.declare_parameter(
+            "absolute_cartesian_lower_bounds",
+            [-2000.0, -2000.0, -2000.0, -360.0, -360.0, -360.0],
+        )
+        self.declare_parameter(
+            "absolute_cartesian_upper_bounds",
+            [2000.0, 2000.0, 2000.0, 360.0, 360.0, 360.0],
+        )
         self.declare_parameter("max_translation_step_mm", 50.0)
         self.declare_parameter("max_rotation_step_deg", 2.0)
         self.declare_parameter("cartesian_velocity_mm_s", 25)
@@ -98,6 +113,9 @@ class FanucpyDriverNode(Node):
         self.robot_port = int(self.get_parameter("robot_port").value)
         self.robot_model = str(self.get_parameter("robot_model").value)
         self.socket_timeout_sec = float(self.get_parameter("socket_timeout_sec").value)
+        self.motion_socket_timeout_sec = float(
+            self.get_parameter("motion_socket_timeout_sec").value
+        )
         self.reconnect_delay_sec = float(self.get_parameter("reconnect_delay_sec").value)
         self.state_poll_rate_hz = float(self.get_parameter("state_poll_rate_hz").value)
         self.frame_id = str(self.get_parameter("frame_id").value)
@@ -127,6 +145,24 @@ class FanucpyDriverNode(Node):
         )
         self.enable_motion_commands = bool(
             self.get_parameter("enable_motion_commands").value
+        )
+        self.enable_absolute_cartesian_commands = bool(
+            self.get_parameter("enable_absolute_cartesian_commands").value
+        )
+        self.enforce_absolute_cartesian_bounds = bool(
+            self.get_parameter("enforce_absolute_cartesian_bounds").value
+        )
+        self.absolute_cartesian_lower_bounds = tuple(
+            float(value)
+            for value in self.get_parameter(
+                "absolute_cartesian_lower_bounds"
+            ).value
+        )
+        self.absolute_cartesian_upper_bounds = tuple(
+            float(value)
+            for value in self.get_parameter(
+                "absolute_cartesian_upper_bounds"
+            ).value
         )
         self.max_translation_step_mm = float(
             self.get_parameter("max_translation_step_mm").value
@@ -259,6 +295,14 @@ class FanucpyDriverNode(Node):
             goal_callback=self._cartesian_jog_goal_callback,
             cancel_callback=self._cartesian_jog_cancel_callback,
         )
+        self._absolute_cartesian_action_server = ActionServer(
+            self,
+            MoveCartesian,
+            "move_cartesian",
+            execute_callback=self._execute_absolute_cartesian,
+            goal_callback=self._absolute_cartesian_goal_callback,
+            cancel_callback=self._absolute_cartesian_cancel_callback,
+        )
         self._program_action_server = ActionServer(
             self,
             RunProgram,
@@ -313,6 +357,20 @@ class FanucpyDriverNode(Node):
                 "Robot motion commands are disabled. Set "
                 "enable_motion_commands:=true only for supervised testing."
             )
+        if self.enable_absolute_cartesian_commands:
+            self.get_logger().warning(
+                "Direct absolute Cartesian commands are ENABLED. These moves "
+                "are not limited by the relative jog-step limits."
+            )
+            if self.enforce_absolute_cartesian_bounds:
+                self.get_logger().warning(
+                    "Operator-configured absolute Cartesian bounds are enabled"
+                )
+            else:
+                self.get_logger().warning(
+                    "Absolute Cartesian software bounds are disabled; the "
+                    "controller must reject unreachable targets"
+                )
         if self.trajectory_execution_mode == "goal_only":
             if self.allow_goal_only_execution:
                 self.get_logger().warning(
@@ -348,6 +406,11 @@ class FanucpyDriverNode(Node):
             raise ValueError("robot_port must be in the range 1..65535")
         if self.socket_timeout_sec <= 0.0:
             raise ValueError("socket_timeout_sec must be greater than zero")
+        if self.motion_socket_timeout_sec < self.socket_timeout_sec:
+            raise ValueError(
+                "motion_socket_timeout_sec must be at least "
+                "socket_timeout_sec"
+            )
         if self.reconnect_delay_sec < 0.1:
             raise ValueError("reconnect_delay_sec must be at least 0.1")
         if not 0.1 <= self.state_poll_rate_hz <= 100.0:
@@ -381,6 +444,24 @@ class FanucpyDriverNode(Node):
                 "program_state_probe_timeout_sec must not exceed "
                 "program_reconnect_timeout_sec"
             )
+        if not (
+            len(self.absolute_cartesian_lower_bounds)
+            == len(self.absolute_cartesian_upper_bounds)
+            == 6
+        ):
+            raise ValueError(
+                "absolute Cartesian lower and upper bounds require six values"
+            )
+        if not all(
+            math.isfinite(low)
+            and math.isfinite(high)
+            and low < high
+            for low, high in zip(
+                self.absolute_cartesian_lower_bounds,
+                self.absolute_cartesian_upper_bounds,
+            )
+        ):
+            raise ValueError("absolute Cartesian bounds are invalid")
         if not 0.1 <= self.max_translation_step_mm <= 100.0:
             raise ValueError("max_translation_step_mm must be in the range 0.1..100")
         if not 0.1 <= self.max_rotation_step_deg <= 30.0:
@@ -770,6 +851,144 @@ class FanucpyDriverNode(Node):
             self._release_motion()
         return result
 
+    @staticmethod
+    def _absolute_cartesian_values(
+        goal: Any,
+    ) -> tuple[float, float, float, float, float, float]:
+        return (
+            goal.target_x_mm,
+            goal.target_y_mm,
+            goal.target_z_mm,
+            goal.target_w_deg,
+            goal.target_p_deg,
+            goal.target_r_deg,
+        )
+
+    def _absolute_cartesian_goal_callback(
+        self,
+        goal_request: MoveCartesian.Goal,
+    ) -> GoalResponse:
+        if not self.enable_motion_commands:
+            reason = "motion commands are disabled"
+        elif not self.enable_absolute_cartesian_commands:
+            reason = "direct absolute Cartesian commands are disabled"
+        else:
+            transport = self._transport
+            reason = (
+                "robot is not connected"
+                if transport is None or not transport.connected
+                else ""
+            )
+        if reason:
+            self.get_logger().warning(
+                f"Rejected absolute Cartesian target: {reason}"
+            )
+            return GoalResponse.REJECT
+
+        requested_frame = goal_request.header.frame_id.strip()
+        if requested_frame and requested_frame != self.frame_id:
+            self.get_logger().warning(
+                "Rejected absolute Cartesian target: frame "
+                f"'{requested_frame}' does not match '{self.frame_id}'"
+            )
+            return GoalResponse.REJECT
+        try:
+            validate_cartesian_target(
+                self._absolute_cartesian_values(goal_request),
+                enforce_bounds=self.enforce_absolute_cartesian_bounds,
+                lower_bounds=self.absolute_cartesian_lower_bounds,
+                upper_bounds=self.absolute_cartesian_upper_bounds,
+            )
+            validate_cartesian_velocity(
+                goal_request.velocity_mm_s,
+                self.cartesian_velocity_mm_s,
+                self.max_cartesian_velocity_mm_s,
+            )
+        except ValueError as exc:
+            self.get_logger().warning(
+                f"Rejected absolute Cartesian target: {exc}"
+            )
+            return GoalResponse.REJECT
+        if not self._try_reserve_motion():
+            self.get_logger().warning(
+                "Rejected absolute Cartesian target: another command is executing"
+            )
+            return GoalResponse.REJECT
+        return GoalResponse.ACCEPT
+
+    def _absolute_cartesian_cancel_callback(
+        self,
+        _goal_handle: Any,
+    ) -> CancelResponse:
+        self.get_logger().warning(
+            "Absolute Cartesian cancellation rejected: fanucpy/MAPPDK does "
+            "not expose a dependable abort; use pendant HOLD or emergency stop"
+        )
+        return CancelResponse.REJECT
+
+    def _execute_absolute_cartesian(
+        self,
+        goal_handle: Any,
+    ) -> MoveCartesian.Result:
+        result = MoveCartesian.Result()
+        feedback = MoveCartesian.Feedback()
+        feedback.state = "Executing direct absolute Cartesian target"
+        goal_handle.publish_feedback(feedback)
+        try:
+            if (
+                not self.enable_motion_commands
+                or not self.enable_absolute_cartesian_commands
+            ):
+                raise RuntimeError("absolute Cartesian execution gate changed")
+            target = validate_cartesian_target(
+                self._absolute_cartesian_values(goal_handle.request),
+                enforce_bounds=self.enforce_absolute_cartesian_bounds,
+                lower_bounds=self.absolute_cartesian_lower_bounds,
+                upper_bounds=self.absolute_cartesian_upper_bounds,
+            )
+            velocity_mm_s = validate_cartesian_velocity(
+                goal_handle.request.velocity_mm_s,
+                self.cartesian_velocity_mm_s,
+                self.max_cartesian_velocity_mm_s,
+            )
+            transport = self._transport
+            if transport is None or not transport.connected:
+                raise RuntimeError("Robot disconnected before motion execution")
+            motion = transport.move_cartesian(
+                target,
+                velocity_mm_s=velocity_mm_s,
+                acceleration_percent=self.cartesian_acceleration_percent,
+            )
+            (
+                result.target_x_mm,
+                result.target_y_mm,
+                result.target_z_mm,
+                result.target_w_deg,
+                result.target_p_deg,
+                result.target_r_deg,
+            ) = motion.target_mm_deg
+            if motion.response_code != 0:
+                raise RuntimeError(motion.response_message)
+            result.success = True
+            result.message = (
+                motion.response_message
+                or "Absolute Cartesian target completed"
+            )
+            goal_handle.succeed()
+            self.get_logger().info(
+                "Absolute Cartesian target completed; target="
+                f"[{', '.join(f'{value:.3f}' for value in target)}]; "
+                f"velocity={velocity_mm_s} mm/s"
+            )
+        except Exception as exc:
+            result.success = False
+            result.message = f"Absolute Cartesian target failed: {exc}"
+            goal_handle.abort()
+            self.get_logger().error(result.message)
+        finally:
+            self._release_motion()
+        return result
+
     def _cartesian_jog_goal_callback(self, goal_request: Any) -> GoalResponse:
         if not self.enable_motion_commands:
             self.get_logger().warning(
@@ -899,10 +1118,24 @@ class FanucpyDriverNode(Node):
         status.host = self.robot_ip
         status.port = self.robot_port
         status.motion_commands_enabled = self.enable_motion_commands
+        status.absolute_cartesian_commands_enabled = (
+            self.enable_motion_commands
+            and self.enable_absolute_cartesian_commands
+        )
+        status.absolute_cartesian_bounds_enabled = (
+            self.enforce_absolute_cartesian_bounds
+        )
+        status.absolute_cartesian_lower_bounds = list(
+            self.absolute_cartesian_lower_bounds
+        )
+        status.absolute_cartesian_upper_bounds = list(
+            self.absolute_cartesian_upper_bounds
+        )
         status.max_translation_step_mm = self.max_translation_step_mm
         status.max_rotation_step_deg = self.max_rotation_step_deg
         status.default_cartesian_velocity_mm_s = self.cartesian_velocity_mm_s
         status.max_cartesian_velocity_mm_s = self.max_cartesian_velocity_mm_s
+        status.motion_socket_timeout_sec = self.motion_socket_timeout_sec
         status.default_joint_velocity_percent = self.joint_velocity_percent
         status.max_joint_velocity_percent = self.max_joint_velocity_percent
         status.trajectory_execution_mode = self.trajectory_execution_mode
@@ -931,6 +1164,7 @@ class FanucpyDriverNode(Node):
             host=self.robot_ip,
             port=self.robot_port,
             socket_timeout_sec=self.socket_timeout_sec,
+            motion_socket_timeout_sec=self.motion_socket_timeout_sec,
             ee_do_type=self.ee_do_type,
             ee_do_num=self.ee_do_num,
         )
@@ -1070,6 +1304,7 @@ class FanucpyDriverNode(Node):
     def destroy_node(self) -> None:
         """Destroy the action waitable before destroying normal node entities."""
         self._trajectory_controller.destroy()
+        self._absolute_cartesian_action_server.destroy()
         self._jog_action_server.destroy()
         self._program_action_server.destroy()
         super().destroy_node()

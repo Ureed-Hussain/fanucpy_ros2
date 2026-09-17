@@ -8,9 +8,12 @@ find_package(std_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/JogCartesian.action"
+  "action/MoveCartesian.action"
   "action/RunProgram.action"
   "msg/CartesianState.msg"
   "msg/DriverStatus.msg"
+  "msg/VisionDetection.msg"
+  "msg/VisionDetectionArray.msg"
   "srv/GetDigitalOutput.srv"
   "srv/GetNumericRegister.srv"
   "srv/GetPower.srv"

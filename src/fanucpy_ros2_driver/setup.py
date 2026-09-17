@@ -6,7 +6,7 @@ package_name = "fanucpy_ros2_driver"
 
 setup(
     name=package_name,
-    version="0.8.0",
+    version="0.9.0",
     packages=find_packages(exclude=["test"]),
     data_files=[
         (

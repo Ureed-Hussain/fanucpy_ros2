@@ -82,6 +82,15 @@ def generate_launch_description() -> LaunchDescription:
 
     declared_arguments = [
         DeclareLaunchArgument(
+            "start_driver",
+            default_value="true",
+            choices=["true", "false"],
+            description=(
+                "Start the FANUC driver in real mode. Set false to reuse "
+                "an already running driver without changing its gates."
+            ),
+        ),
+        DeclareLaunchArgument(
             "mode",
             default_value="mock",
             choices=["mock", "real"],
@@ -98,10 +107,21 @@ def generate_launch_description() -> LaunchDescription:
             description="MAPPDK port used only in real mode.",
         ),
         DeclareLaunchArgument(
+            "motion_socket_timeout_sec",
+            default_value="60.0",
+            description="Motion-only MAPPDK timeout used in real mode.",
+        ),
+        DeclareLaunchArgument(
             "enable_motion_commands",
             default_value="false",
             choices=["true", "false"],
             description="Explicit real-robot motion gate; ignored in mock mode.",
+        ),
+        DeclareLaunchArgument(
+            "enable_absolute_cartesian_commands",
+            default_value="false",
+            choices=["true", "false"],
+            description="Enable direct absolute Cartesian targets in real mode.",
         ),
         DeclareLaunchArgument(
             "enable_controller_writes",
@@ -244,8 +264,14 @@ def generate_launch_description() -> LaunchDescription:
             "robot_port": LaunchConfiguration("robot_port"),
             "robot_model": "FANUC M-10iA",
             "state_poll_rate_hz": LaunchConfiguration("state_poll_rate_hz"),
+            "motion_socket_timeout_sec": LaunchConfiguration(
+                "motion_socket_timeout_sec"
+            ),
             "enable_motion_commands": LaunchConfiguration(
                 "enable_motion_commands"
+            ),
+            "enable_absolute_cartesian_commands": LaunchConfiguration(
+                "enable_absolute_cartesian_commands"
             ),
             "enable_controller_writes": LaunchConfiguration(
                 "enable_controller_writes"
@@ -281,7 +307,10 @@ def generate_launch_description() -> LaunchDescription:
                 "goal_only_max_joint_delta_rad"
             ),
         }.items(),
-        condition=real_condition,
+        condition=IfCondition(PythonExpression([
+            "'", mode, "' == 'real' and '",
+            LaunchConfiguration("start_driver"), "' == 'true'",
+        ])),
     )
 
     real_move_group = Node(

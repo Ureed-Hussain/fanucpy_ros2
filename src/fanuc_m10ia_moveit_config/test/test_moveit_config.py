@@ -22,6 +22,7 @@ import yaml
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 CONFIG = PACKAGE_ROOT / "config"
+LAUNCH = PACKAGE_ROOT / "launch"
 JOINTS = [f"joint_{number}" for number in range(1, 7)]
 
 
@@ -95,3 +96,20 @@ def test_description_uses_licensed_external_m10ia_model():
     )
     assert "moveit_resources_fanuc_description" in xacro
     assert "mock_components/GenericSystem" in xacro
+
+
+def test_existing_driver_wrapper_cannot_start_another_driver():
+    wrapper = (
+        LAUNCH / "fanuc_m10ia_moveit_existing_driver.launch.py"
+    ).read_text(encoding="utf-8")
+    assert '"mode": "real"' in wrapper
+    assert '"start_driver": "false"' in wrapper
+    assert "fanucpy_bringup" not in wrapper
+
+
+def test_main_launch_has_explicit_driver_reuse_gate():
+    launch = (LAUNCH / "fanuc_m10ia_moveit.launch.py").read_text(
+        encoding="utf-8"
+    )
+    assert '"start_driver"' in launch
+    assert 'LaunchConfiguration("start_driver")' in launch

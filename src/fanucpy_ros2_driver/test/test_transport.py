@@ -9,11 +9,25 @@ from fanucpy_ros2_driver.transport import (
 )
 
 
+class FakeSocket:
+    def __init__(self, timeout):
+        self.timeout = timeout
+        self.timeout_history = []
+
+    def gettimeout(self):
+        return self.timeout
+
+    def settimeout(self, timeout):
+        self.timeout = timeout
+        self.timeout_history.append(timeout)
+
+
 class FakeRobot:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
         self.commands = []
         self.disconnected = False
+        self.comm_sock = FakeSocket(kwargs["socket_timeout"])
 
     def connect(self):
         return 0, "connected"
@@ -109,6 +123,70 @@ def test_cartesian_jog_is_relative_to_live_pose():
             "linear": True,
         },
     )
+
+
+def test_absolute_cartesian_move_sends_target_without_live_pose_offset():
+    transport = make_transport()
+    transport.connect()
+    target = (-350.0, 800.0, -190.0, -179.0, 60.0, -175.0)
+    result = transport.move_cartesian(
+        target,
+        velocity_mm_s=200,
+        acceleration_percent=20,
+    )
+    assert result.target_mm_deg == target
+    assert transport._robot.commands[-1] == (
+        "pose",
+        list(target),
+        {
+            "velocity": 200,
+            "acceleration": 20,
+            "cnt_val": 0,
+            "linear": True,
+        },
+    )
+    assert transport._robot.comm_sock.timeout_history == [60.0, 5.0]
+
+
+def test_motion_timeout_resets_connection_and_warns_against_repetition():
+    class TimedOutRobot(FakeRobot):
+        def move(self, move_type, values, **kwargs):
+            raise TimeoutError("timed out")
+
+    transport = FanucpyTransport(
+        robot_model="Fanuc",
+        host="192.0.2.10",
+        socket_timeout_sec=5.0,
+        motion_socket_timeout_sec=30.0,
+        robot_factory=TimedOutRobot,
+    )
+    transport.connect()
+    robot = transport._robot
+
+    with pytest.raises(
+        FanucpyTransportError,
+        match="do not automatically repeat",
+    ):
+        transport.move_cartesian(
+            (-350.0, 800.0, -190.0, -179.0, 60.0, -175.0),
+            velocity_mm_s=200,
+            acceleration_percent=20,
+        )
+
+    assert transport.connected is False
+    assert robot.disconnected is True
+    assert robot.comm_sock.timeout_history == [30.0]
+
+
+def test_motion_timeout_cannot_be_shorter_than_state_timeout():
+    with pytest.raises(ValueError, match="must not be shorter"):
+        FanucpyTransport(
+            robot_model="Fanuc",
+            host="192.0.2.10",
+            socket_timeout_sec=5.0,
+            motion_socket_timeout_sec=4.0,
+            robot_factory=FakeRobot,
+        )
 
 
 def test_joint_waypoint_uses_exact_stop_and_returns_measured_joints():

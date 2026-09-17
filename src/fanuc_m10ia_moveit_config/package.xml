@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>fanuc_m10ia_moveit_config</name>
-  <version>0.8.0</version>
+  <version>0.9.0</version>
   <description>MoveIt 2 configuration for mock and real FANUC M-10iA operation through fanucpy_ros2.</description>
   <maintainer email="157709940+Ureed-Hussain@users.noreply.github.com">Muhammad Ureed Hussain</maintainer>
   <license>Apache-2.0</license>

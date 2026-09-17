@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>fanucpy_ros2_assistant</name>
+  <version>0.2.0</version>
+  <description>Unified conversational FANUC tasks and guarded vision workflows.</description>
+  <maintainer email="157709940+Ureed-Hussain@users.noreply.github.com">Muhammad Ureed Hussain</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>fanucpy_ros2_interfaces</depend>
+  <depend>fanucpy_ros2_task_planner</depend>
+  <depend>rclpy</depend>
+
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>fanucpy_ros2_bringup</exec_depend>
+  <exec_depend>fanucpy_ros2_examples</exec_depend>
+  <exec_depend>fanuc_m10ia_moveit_config</exec_depend>
+  <exec_depend>fanucpy_ros2_vision_bridge</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "name": "home_demo",
+  "description": "Call HOME_P once, only if reviewed and allowlisted on this controller.",
+  "action": "tp_program",
+  "program_name": "HOME_P"
+}

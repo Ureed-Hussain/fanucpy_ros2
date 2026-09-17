@@ -1,0 +1,43 @@
+fanucpy_ollama_prompt:
+  ros__parameters:
+    action_name: "/fanuc/jog_cartesian"
+    absolute_action_name: "/fanuc/move_cartesian"
+    status_topic: "/fanuc/driver_status"
+    cartesian_state_topic: "/fanuc/cartesian_state"
+    joint_state_topic: "/joint_states"
+    trajectory_action_name: "/fanuc_arm_controller/follow_joint_trajectory"
+    program_action_name: "/fanuc/run_program"
+    frame_id: "fanuc_world"
+
+    default_translation_mm: 10.0
+    default_rotation_deg: 1.0
+    max_translation_step_mm: 50.0
+    max_rotation_step_deg: 2.0
+    max_cartesian_velocity_mm_s: 2000
+
+    status_timeout_sec: 5.0
+    action_server_timeout_sec: 5.0
+    action_result_timeout_sec: 120.0
+    max_cartesian_state_age_sec: 2.0
+    max_joint_state_age_sec: 2.0
+    robot_context_timeout_sec: 2.0
+    vision_detections_topic: "/fanuc/vision/detections"
+    max_vision_state_age_sec: 1.0
+    program_result_timeout_sec: 300.0
+
+    joint_names:
+      ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+    joint_lower_limits_rad: [-3.14, -1.57, -3.14, -3.31, -3.31, -6.28]
+    joint_upper_limits_rad: [3.14, 2.79, 4.61, 3.31, 3.31, 6.28]
+    joint_velocity_limits_rad_s: [3.67, 3.32, 3.67, 6.98, 6.98, 10.47]
+    default_joint_velocity_percent: 5
+    max_joint_velocity_percent: 10
+    max_joint_command_delta_rad: 0.35
+
+    # The default endpoint is loopback-only. Remote endpoints are rejected
+    # unless allow_remote_ollama is explicitly enabled.
+    ollama_url: "http://127.0.0.1:11434"
+    ollama_model: "qwen3:8b"
+    ollama_timeout_sec: 60.0
+    ollama_history_turns: 6
+    allow_remote_ollama: false

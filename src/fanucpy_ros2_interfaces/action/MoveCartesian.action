@@ -1,0 +1,22 @@
+# Execute one absolute Cartesian target in the active FANUC user frame.
+# Translation values are millimetres. W/P/R values are degrees.
+std_msgs/Header header
+float64 target_x_mm
+float64 target_y_mm
+float64 target_z_mm
+float64 target_w_deg
+float64 target_p_deg
+float64 target_r_deg
+# Requested linear velocity. Zero selects the driver's configured default.
+uint16 velocity_mm_s
+---
+bool success
+string message
+float64 target_x_mm
+float64 target_y_mm
+float64 target_z_mm
+float64 target_w_deg
+float64 target_p_deg
+float64 target_r_deg
+---
+string state

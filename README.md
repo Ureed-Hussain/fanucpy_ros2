@@ -363,3 +363,26 @@ The complete topic and parameter contract is in `docs/interfaces.md`.
 
 Muhammad Ureed Hussain<br>
 IMViA Laboratory, France
+
+## Optional conversational and vision assistant
+
+The repository now includes an optional, independently gated conversational
+layer for controlling the existing ROS 2 interfaces. It supports guarded
+Cartesian and joint commands, allowlisted TP-program calls, package help,
+reviewed keyboard-teleop and MoveIt 2 launch requests, and questions about
+typed detections from an external vision system. Vision-guided alignment,
+motion-only pick, configured drop, and home workflows remain disabled by
+default and require separate driver, assistant, allowlist, and confirmation
+gates before physical execution.
+
+The associated packages are `fanucpy_ros2_task_planner`,
+`fanucpy_ros2_vision_bridge`, and `fanucpy_ros2_assistant`. See the
+[assistant package documentation](src/fanucpy_ros2_assistant/README.md) for
+architecture, prerequisites, dry-run and supervised-hardware commands, safety
+boundaries, and extension points.
+
+The trained checkpoint used during the laboratory experiment is a company
+asset and is intentionally **not included** in this repository. The vision
+bridge accepts validated ROS 2 observations from an external detector; users
+must provide and license their own model or detector integration. Model-weight
+file types are excluded by `.gitignore` to prevent accidental publication.

@@ -36,7 +36,10 @@ jobs:
             fanucpy_ros2_driver
             fanucpy_ros2_examples
             fanucpy_ros2_interfaces
+            fanucpy_ros2_assistant
+            fanucpy_ros2_task_planner
             fanucpy_ros2_trajectory_controller
+            fanucpy_ros2_vision_bridge
             fanucpy_ros2_visualization
           coverage-result: false
           rosdep-check: true

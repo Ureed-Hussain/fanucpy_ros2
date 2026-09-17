@@ -7,6 +7,7 @@ import pytest
 
 from fanucpy_ros2_driver.motion import (
     validate_cartesian_offset,
+    validate_cartesian_target,
     validate_cartesian_velocity,
 )
 
@@ -44,3 +45,25 @@ def test_requested_velocity_is_limited_by_driver():
     assert validate_cartesian_velocity(100, 25, 250) == 100
     with pytest.raises(ValueError):
         validate_cartesian_velocity(251, 25, 250)
+
+
+def test_absolute_target_has_no_relative_step_limit():
+    target = (-350, 800, -190, -179, 60, -175)
+    assert validate_cartesian_target(target) == tuple(float(x) for x in target)
+
+
+def test_optional_absolute_target_bounds_are_enforced():
+    target = (-350, 800, -190, -179, 60, -175)
+    assert validate_cartesian_target(
+        target,
+        enforce_bounds=True,
+        lower_bounds=(-1000, -1000, -1000, -360, -360, -360),
+        upper_bounds=(1000, 1000, 1000, 360, 360, 360),
+    ) == tuple(float(x) for x in target)
+    with pytest.raises(ValueError, match="Y target"):
+        validate_cartesian_target(
+            target,
+            enforce_bounds=True,
+            lower_bounds=(-500, -500, -500, -360, -360, -360),
+            upper_bounds=(500, 500, 500, 360, 360, 360),
+        )

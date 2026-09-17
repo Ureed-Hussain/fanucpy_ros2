@@ -12,14 +12,47 @@ The standard joint-state topic remains global for compatibility with
 | `/joint_states` | `sensor_msgs/msg/JointState` | Six joint positions in radians |
 | `/fanuc/cartesian_state` | `fanucpy_ros2_interfaces/msg/CartesianState` | Native controller XYZ in mm and WPR in degrees |
 | `/fanuc/cartesian_pose` | `geometry_msgs/msg/PoseStamped` | XYZ in metres and normalized quaternion orientation |
+| `/fanuc/vision/detections` | `fanucpy_ros2_interfaces/msg/VisionDetectionArray` | Optional normalized conveyor observations from an external detector |
+| `/fanuc/vision/status` | `std_msgs/msg/String` | Optional bridge health and latest exact-label counts |
 
 `driver_status` uses reliable, transient-local QoS so a newly started monitor
 receives the latest connection state. Its states are `DISCONNECTED` (0),
 `CONNECTING` (1), `CONNECTED` (2), and `ERROR` (3). It also publishes the
 motion gate and active translation, rotation, default-velocity, and
 maximum-velocity limits so clients do not duplicate robot-specific values.
-The status also reports the controller-write gate, effective TP-program gate,
-allowlist, and configured gripper output.
+The status also reports the direct absolute-Cartesian gate and optional bounds,
+controller-write gate, effective TP-program gate, allowlist, and configured
+gripper output.
+
+The two vision topics are published only when
+`fanucpy_ros2_vision_bridge` is running. The bridge currently accepts the
+schema-version-2 JSON batch on `/danger/model/observations`, preserves its
+source stamp, exact class labels, and normal/dangerous classification, and
+publishes conveyor-plane coordinates in metres. Each item has a
+`geometry_valid` flag; zero coordinate placeholders on visual-only detections
+must not be interpreted as measured positions. A separate
+`projected_center_valid` flag guards `projected_u_px` and `projected_v_px`.
+When conveyor geometry is valid and eye-to-hand conversion is enabled,
+`eye_to_hand_valid` guards calibrated `eye_to_hand_x_mm` and
+`eye_to_hand_y_mm`. The containing array identifies the robot frame and
+calibration name. The current affine result is two-dimensional and has no Z
+component. The bridge does not command the robot. The external detector's
+dangerous-only `/danger/model/detections` topic is not changed or consumed by
+this bridge.
+
+`fanucpy_ros2_assistant` consumes `/fanuc/vision/detections` but introduces no
+new command topic. A validated object-directed XY alignment is resolved into
+the existing `/fanuc/move_cartesian` action. The assistant preserves fresh
+current Z/W/P/R and requires its own `enable_vision_guided_motion` gate in
+addition to the CLI and driver gates.
+
+The assistant also composes existing interfaces for named workflows. Its
+motion-only pick sequence sends three verified `/fanuc/move_cartesian` goals:
+object X/Y at the configured approach Z, the same pose with only Z lowered,
+and the same pose with only Z retracted. The configured drop position is one
+absolute Cartesian goal. Home wording sends the configured program through
+`/fanuc/run_program`; that program must pass the driver's independent TP gate
+and allowlist. These workflows do not call `/fanuc/set_gripper`.
 
 ## Services
 
@@ -56,6 +89,23 @@ both Python and C++ clients.
 MAPPDK/fanucpy does not expose a reliable motion-abort operation. ROS action
 cancellation is therefore rejected. Use teach-pendant HOLD or the emergency
 stop to interrupt active robot motion.
+
+### Direct absolute Cartesian targets
+
+`/fanuc/move_cartesian` uses
+`fanucpy_ros2_interfaces/action/MoveCartesian`. Each goal contains one complete
+absolute X/Y/Z/W/P/R target in millimetres and degrees plus a linear velocity.
+The driver sends that pose directly to fanucpy with linear motion and `CNT=0`.
+It does not apply the relative `max_translation_step_mm` or
+`max_rotation_step_deg` jog limits.
+
+This action requires both `enable_motion_commands` and the separate
+`enable_absolute_cartesian_commands` gate. Targets must be finite, use the
+configured `frame_id`, and respect the Cartesian velocity cap. Optional
+axis-aligned coordinate bounds can be enabled with
+`enforce_absolute_cartesian_bounds`; they are disabled by default and are not
+a substitute for reachability, collision checking, DCS, or a workcell risk
+assessment. Cancellation has the same MAPPDK limitation as Cartesian jogs.
 
 ### TP programs
 
@@ -95,7 +145,8 @@ robot.
 | `robot_ip` | `192.168.0.177` | Tested controller IPv4 address; replace for another controller or site |
 | `robot_port` | `18735` | MAPPDK server TCP port |
 | `robot_model` | `FANUC M-10iA` in the site YAML | Model label passed to fanucpy and status messages |
-| `socket_timeout_sec` | `5.0` | Maximum blocking socket-operation time |
+| `socket_timeout_sec` | `5.0` | Timeout for connection, state, I/O, and other short MAPPDK operations |
+| `motion_socket_timeout_sec` | `60.0` | Temporary timeout used only while a blocking FANUC move waits for completion |
 | `reconnect_delay_sec` | `2.0` | Wait between reconnection attempts |
 | `state_poll_rate_hz` | `5.0` | State sampling frequency |
 | `frame_id` | `fanuc_world` | Cartesian message frame label |
@@ -109,6 +160,10 @@ robot.
 | `program_reconnect_timeout_sec` | `15.0` | Maximum time allowed for post-program socket recovery |
 | `program_state_probe_timeout_sec` | `5.0` | Temporary socket timeout for the recovery state check |
 | `enable_motion_commands` | `false` | Explicit gate for all robot motion actions |
+| `enable_absolute_cartesian_commands` | `false` | Second gate for direct `/fanuc/move_cartesian` targets |
+| `enforce_absolute_cartesian_bounds` | `false` | Enforce the configured X/Y/Z/W/P/R coordinate box for direct targets |
+| `absolute_cartesian_lower_bounds` | `[-2000, -2000, -2000, -360, -360, -360]` | Lower optional X/Y/Z/W/P/R bounds in mm/deg |
+| `absolute_cartesian_upper_bounds` | `[2000, 2000, 2000, 360, 360, 360]` | Upper optional X/Y/Z/W/P/R bounds in mm/deg |
 | `max_translation_step_mm` | `50.0` | Maximum absolute jog offset on each XYZ axis |
 | `max_rotation_step_deg` | `2.0` | Maximum absolute jog offset on each WPR axis |
 | `cartesian_velocity_mm_s` | `25` | Linear jog velocity passed to fanucpy |

@@ -1,0 +1,59 @@
+fanucpy_assistant:
+  ros__parameters:
+    # Optional single-step JSON task files. Empty selects installed examples.
+    # Files are snapshotted at startup; no Python/shell execution is supported.
+    task_directory: ""
+    # No saved motion task is executable by default. Exact names only.
+    # This does not override --execute, driver gates or typed confirmation.
+    allowed_tasks: [""]
+
+    # Reviewed ROS executable/launch programs, separate from JSON motion tasks.
+    # Empty registry path selects config/examples.json from this package.
+    # --execute and LAUNCH <name> confirmation are additionally required.
+    example_registry_file: ""
+    allowed_examples: [""]
+
+    # A dry-run target can always be previewed. Physical vision-guided motion
+    # additionally requires this gate, CLI --execute, the driver motion and
+    # absolute-Cartesian gates, fresh state, and typed operator confirmation.
+    enable_vision_guided_motion: false
+
+    default_vision_velocity_mm_s: 25
+    max_vision_xy_travel_mm: 500.0
+    max_vision_target_refresh_shift_mm: 5.0
+    vision_refresh_timeout_sec: 2.0
+
+    # Calibrated object XY is interpreted as the desired TCP XY. Use this
+    # workcell-specific offset only after measuring the camera-to-TCP relation.
+    vision_xy_offset_mm: [0.0, 0.0]
+
+    # "Pick" remains a motion-only sequence in this stage. It approaches the
+    # selected calibrated XY, descends only in Z, then retracts only in Z.
+    # It does not operate a gripper.
+    enable_pick_motion_sequence: false
+    pick_approach_z_mm: -190.0
+    pick_descend_z_mm: -238.0
+    pick_retract_z_mm: -190.0
+    max_pick_approach_z_change_mm: 100.0
+    max_pick_vertical_stage_mm: 50.0
+    pick_pose_tolerance_mm: 2.0
+    pick_orientation_tolerance_deg: 1.0
+
+    # Workcell-specific named target for "go to drop" or "drop it" wording.
+    # This moves the robot only; no gripper release is included.
+    enable_drop_target_motion: false
+    drop_target_mm_deg: [237.0, 720.0, -167.0, -179.0, 60.0, -175.0]
+    # Used when speed is omitted. An explicit mm/s or "max speed" prompt
+    # is validated against the driver ceiling and shown before confirmation.
+    drop_velocity_mm_s: 25
+
+    # "Go home" calls this exact allowlisted TP program. The driver must also
+    # enable TP execution and include the program in allowed_tp_programs.
+    enable_home_program_call: false
+    home_program_name: "HOME_P"
+
+    vision_detections_topic: "/fanuc/vision/detections"
+    max_vision_state_age_sec: 1.0
+    frame_id: "fanuc_world"
+    ollama_url: "http://127.0.0.1:11434"
+    ollama_model: "qwen3:8b"

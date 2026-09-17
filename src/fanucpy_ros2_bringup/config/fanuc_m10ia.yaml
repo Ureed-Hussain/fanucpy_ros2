@@ -6,6 +6,9 @@
     robot_port: 18735
     robot_model: "FANUC M-10iA"
     socket_timeout_sec: 5.0
+    # MAPPDK replies to a move only after the controller command completes.
+    # Keep this separate from the short timeout used for normal state reads.
+    motion_socket_timeout_sec: 60.0
     reconnect_delay_sec: 2.0
 
     # Controller utility writes and TP program calls are independent, explicit
@@ -26,6 +29,16 @@
     # Motion stays off during normal state-only bringup. Enabling it allows
     # bounded /fanuc/jog_cartesian action goals to execute.
     enable_motion_commands: false
+    # Separate opt-in for /fanuc/move_cartesian. Absolute targets are sent
+    # directly and are not restricted by the relative jog-step limits below.
+    enable_absolute_cartesian_commands: false
+    # Optional site-specific coordinate envelope. Disabled by default because
+    # an axis-aligned box is not a robot reachability or collision model.
+    enforce_absolute_cartesian_bounds: false
+    absolute_cartesian_lower_bounds:
+      [-2000.0, -2000.0, -2000.0, -360.0, -360.0, -360.0]
+    absolute_cartesian_upper_bounds:
+      [2000.0, 2000.0, 2000.0, 360.0, 360.0, 360.0]
     max_translation_step_mm: 50.0
     max_rotation_step_deg: 2.0
     cartesian_velocity_mm_s: 25
