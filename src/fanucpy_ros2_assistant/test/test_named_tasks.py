@@ -126,7 +126,7 @@ def test_missing_axis_rejected_instead_of_guessing():
 
 
 @pytest.mark.parametrize("raw", [
-    b"{}", b"[]", b"{", b"{\"action\":1,\"action\":2}", b"\xff",
+    b"{}", b"[]", b"{", b'{"action":1,"action":2}', b"\xff",
     b" " * 16385, b"[" * 2000,
 ])
 def test_malformed_duplicate_or_large_files_rejected(raw):

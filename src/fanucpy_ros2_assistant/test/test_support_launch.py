@@ -27,7 +27,7 @@ def test_external_perception_is_configurable_and_conditioned():
     assert 'detector_package = LaunchConfiguration("detector_package")' in text
     assert "condition=IfCondition(start_camera)" in text
     assert "condition=IfCondition(start_detector)" in text
-    assert 'detector_model_path = LaunchConfiguration(' in text
+    assert "detector_model_path = LaunchConfiguration(" in text
 
 
 def test_private_model_is_not_embedded_in_launch_file():
