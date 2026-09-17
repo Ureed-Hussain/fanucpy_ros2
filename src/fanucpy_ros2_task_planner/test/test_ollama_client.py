@@ -59,6 +59,7 @@ def _decision(**overrides):
 
 
 class FakeResponse:
+
     def __init__(self, body):
         self.body = body
 
@@ -73,6 +74,7 @@ class FakeResponse:
 
 
 class FakeOpener:
+
     def __init__(self, decisions):
         self.decisions = list(decisions)
         self.requests = []
@@ -356,6 +358,7 @@ def test_connection_failure_has_actionable_error():
 
 def test_malformed_model_json_is_rejected():
     class MalformedOpener:
+
         def __call__(self, _request, timeout):
             del timeout
             envelope = {"message": {"content": "not-json"}}
